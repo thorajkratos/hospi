@@ -1,0 +1,76 @@
+
+Project Brief: Hospi - Hospital Management System
+
+Hospi is a comprehensive hospital management web application built with the MERN stack that facilitates appointment booking between patients and doctors with admin oversight.
+Core Functionality: 
+Patients/Users: Register, book appointments, manage profiles, make payments
+Doctors: Manage availability, view appointments, update profiles, track earnings
+Admin: Manage doctors, view all appointments, monitor system dashboard
+
+
+Technology Stack Used:
+
+🚀 Frontend Technologies 
+Core Framework
+React.js - JavaScript library for building user interfaces
+React DOM - DOM renderer for React    
+Routing 
+React Router DOM - Client-side routing for React applications
+State Management  
+React Context API - For global state management
+React Hooks (useState, useEffect, useContext) - For state and lifecycle management
+HTTP Client 
+Axios - Promise-based HTTP client for API calls 
+Styling & UI
+Tailwind CSS - Utility-first CSS framework
+Notifications
+React Toastify - Toast notifications library
+Development Tools
+Vite - Fast build tool and development server (based on your error messages)
+
+
+
+
+
+
+Backend:
+Node.js - Runtime environment
+Express.js - Web framework
+MongoDB - Database
+Mongoose - MongoDB ODM
+JWT - Authentication (jsonwebtoken)
+bcryptjs - Password hashing  
+validator - Input validation 
+multer - File upload handling
+cloudinary - Image storage
+cors - Cross-origin resource sharing
+dotenv - Environment variables
+
+
+Development Tools:
+nodemon - Development server auto-restart
+Git - Version control
+VS Code - Code editor
+
+Architecture:
+RESTful API - Backend API design
+MVC Pattern - Models, Views, Controllers 
+Middleware - Authentication & file upload
+Environment Configuration - .env for secrets
+
+Key Features Implemented:
+User Authentication (JWT tokens)
+Role-based Access (Admin, Doctor, User)
+Appointment Management (Booking, Cancellation, Completion)
+Image Upload (Cloudinary for doctor/user profiles)
+Database Operations (CRUD operations with MongoDB)
+Input Validation & Error handling
+File Upload with multer middleware
+
+Security Measures:
+Password hashing with bcrypt
+JWT token-based authentication
+Input validation and sanitization
+Environment variables for sensitive data
+
+
