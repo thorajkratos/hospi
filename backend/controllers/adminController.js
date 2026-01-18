@@ -10,10 +10,22 @@ const userModel = require("../models/userModel");
 // API for admin login
 const loginAdmin = async (req, res) => {
     try {
-        const { email, password } = req.body
+        const { email, password } = req.body 
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required"
+            });
+        }
+
 
         if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-            const token = jwt.sign(email + password, process.env.JWT_SECRET)
+            const token = jwt.sign(
+                { role: "admin" },
+                process.env.JWT_SECRET,
+                { expiresIn: "1d" }
+            )
+
             res.json({ success: true, token })
         } else {
             res.json({ success: false, message: "Invalid credentials" })
@@ -41,6 +53,18 @@ const addDoctor = async (req, res) => {
     if (password.length < 8) {
       return res.status(400).json({ success: false, message: "Please enter a strong password" });
     }
+
+    const existingDoctor = await doctorModel.findOne({
+        email: email.toLowerCase()
+    });
+
+    if (existingDoctor) {
+        return res.status(409).json({
+            success: false,
+            message: "Doctor already exists"
+        });
+    }
+
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);

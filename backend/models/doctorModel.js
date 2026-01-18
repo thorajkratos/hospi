@@ -3,9 +3,9 @@ const mongoose = require("mongoose");
 
 const doctorSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, lowercase: true },
     password: { type: String, required: true },
-    role: {type: String,enum: ["user", "doctor", "admin"],default: "user"},
+    role: {type: String,enum: ["user", "doctor", "admin"],default: "doctor"},
     image: { type: String, required: true },
     speciality: { type: String, required: true },
     degree: { type: String, required: true },
@@ -15,7 +15,7 @@ const doctorSchema = new mongoose.Schema({
     fees: { type: Number, required: true },
     slots_booked: { type: Object, default: {} },
     address: { type: Object, required: true },
-    date: { type: Number, required: true },
+    createdAt: {type: Date,default: Date.now},
 }, { minimize: false });
 
 const doctorModel = mongoose.models.doctor || mongoose.model("doctor", doctorSchema);

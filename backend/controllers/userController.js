@@ -18,11 +18,18 @@ require("dotenv").config();
 const registerUser = async (req, res) => {
     try {
         const { name, email, password } = req.body; 
+        email: email.toLowerCase()
 
         // checking for all data to register user 
         if (!name || !email || !password) {
-            return res.json({ success: false, message: 'Missing Details' }); 
+            return res.status(400).json({ success: false, message: "Missing Details" });
         }
+
+        const existingUser = await userModel.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({ success: false, message: "User already exists" });
+        }
+
 
         // validating email format
         if (!validator.isEmail(email)) {  
@@ -31,7 +38,7 @@ const registerUser = async (req, res) => {
 
         // validating strong password
         if (password.length < 8) { 
-            return res.json({ success: false, message: "Please enter a strong password" });
+            return res.status(400).json({ success: false, message: "Please enter a strong password" });
         }
 
         // hashing user password
@@ -46,13 +53,24 @@ const registerUser = async (req, res) => {
 
         const newUser = new userModel(userData);
         const user = await newUser.save();
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+        // const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET, 
+            { expiresIn: "7d" }
+        );
+
  
         res.json({ success: true, token });    
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
+        console.log(error); 
+        // res.json({ success: false, message: error.message });     
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+
     }
 };
 
@@ -62,23 +80,36 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required"
+            });
+        }
+        email: email.toLowerCase()     
+
         const user = await userModel.findOne({ email });
 
         if (!user) {
-            return res.json({ success: false, message: "User does not exist" });
+            return res.json({ success: false, message: "Invalid credentials" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (isMatch) {
-            const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+            const token = jwt.sign( 
+                { id: user._id, role: user.role },
+                process.env.JWT_SECRET,
+                { expiresIn: "7d" }
+            );
+
             res.json({ success: true, token });
         } else {
             res.json({ success: false, message: "Invalid credentials" });
         }
-    } catch (error) {
+    } catch (error) { 
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.json({ success: false, message: "Internal Server Error" }); 
     }
 };
 
@@ -99,28 +130,6 @@ const getProfile = async (req, res) => {
 };
 
 
-
-// API to update user profile
-// const updateProfile = async (req, res) => {
-//     try {
-//         const { userId, name, phone, address, dob, gender } = req.body;
-//         const imageFile = req.file; 
-//         if (!name || !phone || !dob || !gender) { 
-//             return res.json({ success: false, message: "Data Missing" });
-//         }
-//         await userModel.findByIdAndUpdate(userId, { name, phone, address: JSON.parse(address), dob, gender });
-//         if (imageFile) { 
-//             // upload image to cloudinary
-//             const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
-//             const imageURL = imageUpload.secure_url; 
-//             await userModel.findByIdAndUpdate(userId, { image: imageURL });
-//         }
-//         res.json({ success: true, message: 'Profile Updated' });
-//     } catch (error) {
-//         console.log(error);
-//         res.json({ success: false, message: error.message });
-//     }
-// };
 
 
 const updateProfile = async (req, res) => {
@@ -168,8 +177,23 @@ const updateProfile = async (req, res) => {
 // API to book appointment 
 const bookAppointment = async (req, res) => {
     try {
-        const { userId, docId, slotDate, slotTime } = req.body;
+        const { userId, docId, slotDate, slotTime } = req.body; 
+        if (!docId || !slotDate || !slotTime) {
+            return res.status(400).json({
+            success: false, 
+            message: "Missing appointment details"
+        });
+}
+
         const docData = await doctorModel.findById(docId).select("-password");
+        if (!docData) {
+            return res.status(404).json({
+                success: false,
+                message: "Doctor not found"
+            });
+        }
+
+
 
         if (!docData.available) {
             return res.json({ success: false, message: 'Doctor Not Available' });
@@ -222,11 +246,26 @@ const bookAppointment = async (req, res) => {
 const cancelAppointment = async (req, res) => {
     try {
         const { userId, appointmentId } = req.body;
+        
         const appointmentData = await appointmentModel.findById(appointmentId);
+        if (!appointmentData) {
+            return res.status(404).json({
+                success: false,
+                message: "Appointment not found"
+            });
+        }
+
 
         // verify appointment user 
         if (appointmentData.userId !== userId) {
             return res.json({ success: false, message: 'Unauthorized action' });
+        }
+        
+        if (appointmentData.cancelled) {
+            return res.status(400).json({
+                success: false,
+                message: "Appointment already cancelled"
+            });
         }
 
         await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });

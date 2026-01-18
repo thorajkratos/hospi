@@ -1,9 +1,9 @@
 
 const mongoose = require("mongoose");
 
-const appointmentSchema = new mongoose.Schema({
-    userId: { type: String, required: true },
-    docId: { type: String, required: true },
+const appointmentSchema = new mongoose.Schema({ 
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    docId: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor", required: true },
     slotDate: { type: String, required: true },
     slotTime: { type: String, required: true },
     userData: { type: Object, required: true },
